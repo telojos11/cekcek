@@ -1,0 +1,9 @@
+<iframe id="target" src="https://shop-id.tokopedia.com/"></iframe>
+<script>
+  document.getElementById('target').onload = function() {
+    this.contentWindow.postMessage(
+      JSON.stringify({type: 'PAYLOAD_TYPE', payload: 'data'}),
+      'https://shop-id.tokopedia.com'
+    );
+  };
+</script>
