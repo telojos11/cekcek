@@ -9,14 +9,52 @@
 <div id="fullscreenElement"></div>
 
 <script>
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+
   function main() {
     const pointerLockElement = document.getElementById("pointerLockElement");
     const fullscreenElement = document.getElementById("fullscreenElement");
 
     fullscreenElement.appendChild(pointerLockElement);
     fullscreenElement.requestFullscreen();
-    pointerLockElement.requestPointerLock();
+
+    // Pengganti requestPointerLock()
+    // Sembunyikan kursor asli
+    document.body.style.cursor = "none";
+
+    // Lacak posisi mouse secara manual
+    document.addEventListener("mousemove", function(e) {
+      mouseX += e.movementX;
+      mouseY += e.movementY;
+
+      // Batasi agar tidak keluar layar
+      mouseX = Math.max(0, Math.min(window.innerWidth, mouseX));
+      mouseY = Math.max(0, Math.min(window.innerHeight, mouseY));
+
+      // Gerakkan elemen custom cursor
+      customCursor.style.left = mouseX + "px";
+      customCursor.style.top  = mouseY + "px";
+    });
   }
+
+  // Buat custom cursor pengganti
+  const customCursor = document.createElement("div");
+  customCursor.style.cssText = `
+    position: fixed;
+    width: 15px;
+    height: 15px;
+    background: white;
+    border: 2px solid black;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    left: ${mouseX}px;
+    top: ${mouseY}px;
+    z-index: 9999;
+  `;
+  document.body.appendChild(customCursor);
 </script>
+
 </body>
 </html>
