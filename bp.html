@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body onclick="main()">
+<center>
+  <h1>Click On Screen</h1>
+</center>
+
+<div id="pointerLockElement"></div>
+<div id="fullscreenElement"></div>
+
+<script>
+  function main() {
+    const pointerLockElement = document.getElementById("pointerLockElement");
+    const fullscreenElement = document.getElementById("fullscreenElement");
+
+    fullscreenElement.appendChild(pointerLockElement);
+    fullscreenElement.requestFullscreen();
+    pointerLockElement.requestPointerLock();
+  }
+</script>
+</body>
+</html>
