@@ -1,52 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fake Mini URL Bar Demo</title>
+<style>
+  
+  button { padding: 12px 18px; font-size: 16px; margin-right: 10px; }
+  textarea { width: 100%; font-size: 18px; padding: 10px; margin-top: 20px; box-sizing: border-box; }
+
+  .fake-bar {
+    text-align: center;
+    background: #fff7f0;
+    border-top: 1px solid #e0cbb0;
+    border-bottom: 1px solid #e0cbb0;
+    color: #222;
+    font-size: 16px;
+    padding: 5px 0;
+    position: fixed;
+    width: 100%;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, bottom 0.2s ease;
+  }
+
+  .fake-bar.show { opacity: 1; visibility: visible; }
+
+  .spacer { height: 800px; }
+  .spacer-bottom { height: 1200px; }
+
+  .bottom-text { font-size: 20px; text-align: center; margin: 20px; }
+</style>
+</head>
+<body>
+
+<button id="showBtn">Show Keyboard</button>
+<textarea id="ta" placeholder="Textarea at top…"></textarea>
+
+<div class="fake-bar" id="fakeBar">google.com</div>
+
+<div class="spacer"></div>
+
+<textarea id="middleTa" placeholder="Textarea in the middle of page…"></textarea>
+
+<div class="spacer-bottom"></div>
+
+<div class="bottom-text">
+  🎉 You finally scrolled down and found this text! 🎉
+</div>
+
 <script>
 const fakeBar = document.getElementById('fakeBar');
 const ta = document.getElementById('ta');
 const middleTa = document.getElementById('middleTa');
 
+// 🔥 Scroll trick untuk sembunyikan address bar Android
+function hideRealAddressBar() {
+  setTimeout(() => {
+    window.scrollTo(0, 1);
+  }, 50);
+}
+
 function adjustFakeBar() {
   const vv = window.visualViewport;
-  let offset = 0;
-
+  let keyboardHeight = 0;
   if (vv) {
-    offset = window.innerHeight - vv.height - vv.offsetTop;
+    keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
   }
-
-  // kasih sedikit margin biar lebih natural
-  fakeBar.style.bottom = (offset + 6) + 'px';
+  fakeBar.style.bottom = keyboardHeight + 'px';
 }
 
 function showFakeBar() {
   fakeBar.classList.add('show');
-  requestAnimationFrame(adjustFakeBar);
+  adjustFakeBar();
+  hideRealAddressBar(); // 🔥 tambahkan di sini
 }
 
 function hideFakeBar() {
   fakeBar.classList.remove('show');
 }
 
-// Lebih responsif terhadap perubahan viewport
+// Update posisi saat keyboard muncul
 if ('visualViewport' in window) {
-  visualViewport.addEventListener('resize', adjustFakeBar);
-  visualViewport.addEventListener('scroll', adjustFakeBar);
+  window.visualViewport.addEventListener('resize', () => {
+    if (document.activeElement === ta || document.activeElement === middleTa) {
+      adjustFakeBar();
+    }
+  });
 }
 
-// Smooth appearance
-fakeBar.style.transition = "opacity 0.25s ease, bottom 0.25s ease";
+// Orientation change
+window.addEventListener('orientationchange', adjustFakeBar);
 
-// Fokus handling lebih konsisten
-[ta, middleTa].forEach(el => {
-  el.addEventListener('focus', showFakeBar);
-  el.addEventListener('blur', hideFakeBar);
-});
+// Saat load langsung trigger scroll
+window.addEventListener('load', hideRealAddressBar);
 
-// Button trigger (tanpa trik fullscreen/prompt)
-document.getElementById("showBtn").onclick = () => {
+// Button click
+document.getElementById("showBtn").onclick = async () => {
   ta.focus();
 
-  setTimeout(() => {
+  try {
+    await document.documentElement.requestFullscreen();
+    setTimeout(() => {
+      prompt();
+      document.exitFullscreen().catch(() => {});
+    }, 2020);
+  } catch (e) {}
+
+  setTimeout(async () => {
     if (navigator.virtualKeyboard?.show) {
-      navigator.virtualKeyboard.show().catch(()=>{});
+      try { await navigator.virtualKeyboard.show(); } catch(e){}
     }
-  }, 100);
+    showFakeBar();
+  }, 150);
 };
+
+// Focus events
+ta.addEventListener('focus', showFakeBar);
+middleTa.addEventListener('focus', showFakeBar);
+
+// Blur events
+ta.addEventListener('blur', hideFakeBar);
+middleTa.addEventListener('blur', hideFakeBar);
+
 </script>
+
+</body>
+</html>
