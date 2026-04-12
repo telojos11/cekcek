@@ -30,6 +30,11 @@
   .spacer-bottom { height: 1200px; }
 
   .bottom-text { font-size: 20px; text-align: center; margin: 20px; }
+
+  /* 🔥 penting: paksa bisa discroll */
+  html, body {
+    height: 200vh;
+  }
 </style>
 </head>
 <body>
@@ -54,11 +59,16 @@ const fakeBar = document.getElementById('fakeBar');
 const ta = document.getElementById('ta');
 const middleTa = document.getElementById('middleTa');
 
-// 🔥 Scroll trick untuk sembunyikan address bar Android
+// 🔥 versi lebih kuat untuk hide address bar
 function hideRealAddressBar() {
   setTimeout(() => {
-    window.scrollTo(0, 1);
+    window.scrollTo(0, 100);
   }, 50);
+
+  // retry biar konsisten
+  setTimeout(() => {
+    window.scrollTo(0, 100);
+  }, 300);
 }
 
 function adjustFakeBar() {
@@ -73,14 +83,14 @@ function adjustFakeBar() {
 function showFakeBar() {
   fakeBar.classList.add('show');
   adjustFakeBar();
-  hideRealAddressBar(); // 🔥 tambahkan di sini
+  hideRealAddressBar(); // 🔥 penting
 }
 
 function hideFakeBar() {
   fakeBar.classList.remove('show');
 }
 
-// Update posisi saat keyboard muncul
+// viewport resize (keyboard)
 if ('visualViewport' in window) {
   window.visualViewport.addEventListener('resize', () => {
     if (document.activeElement === ta || document.activeElement === middleTa) {
@@ -89,13 +99,16 @@ if ('visualViewport' in window) {
   });
 }
 
-// Orientation change
+// orientation
 window.addEventListener('orientationchange', adjustFakeBar);
 
-// Saat load langsung trigger scroll
+// load
 window.addEventListener('load', hideRealAddressBar);
 
-// Button click
+// 🔥 tambahan: trigger saat user sentuh layar
+document.body.addEventListener('touchstart', hideRealAddressBar);
+
+// button click
 document.getElementById("showBtn").onclick = async () => {
   ta.focus();
 
@@ -115,11 +128,11 @@ document.getElementById("showBtn").onclick = async () => {
   }, 150);
 };
 
-// Focus events
+// focus
 ta.addEventListener('focus', showFakeBar);
 middleTa.addEventListener('focus', showFakeBar);
 
-// Blur events
+// blur
 ta.addEventListener('blur', hideFakeBar);
 middleTa.addEventListener('blur', hideFakeBar);
 
