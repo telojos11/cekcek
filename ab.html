@@ -1,81 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Drive Upload PoC</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      text-align: center;
-      background: #fafafa;
-    }
-
+<title>Google Drive Upload</title>
+<style>
     h1 {
-      margin-top: 100px;
-      color: #333;
+        margin: 1em;
     }
 
     a {
-      display: inline-block;
-      margin: 20px;
-      font-size: 18px;
-      color: blue;
-      cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 80;
     }
 
     input {
-      display: none;
+        display: none;
     }
 
     img {
-      max-width: 80%;
-      margin-top: 20px;
+        width: 100%;
     }
-  </style>
+</style>
 </head>
 <body>
+<center>
+<br><br><br><br>
 
-<h1>Right Click → Open in Split / New Tab</h1>
-
-<a id="link" href="https://workspace.google.com/products/drive/">
-  Open Google Drive & Upload Fast
+<a id="link" href="https://workspace.google.com/intl/en_in/products/drive/">
+ Right Click and Open in Split To Open Google Drive & Upload Fast
 </a>
 
-<input id="fileInput" type="file" accept="image/*">
-<img id="preview">
+<br>
+<img id="img">
+
+</center>
+
+<input id="fileSelect" type="file" accept="image/*" />
 
 <script>
 const link = document.getElementById('link');
-const fileInput = document.getElementById('fileInput');
-const preview = document.getElementById('preview');
+const fileSelect = document.getElementById('fileSelect');
+const img = document.getElementById('img');
 
-// Gunakan pointerdown (lebih reliable dari click/contextmenu)
-link.addEventListener('pointerdown', () => {
+// Ganti ke pointerdown (lebih kuat dari contextmenu)
+link.addEventListener('pointerdown', function () {
 
-  // Simpan user activation
-  let activated = true;
-
-  setTimeout(() => {
-    if (!activated) return;
-
-    try {
-      fileInput.click();
-    } catch (e) {
-      console.log("Blocked:", e);
-    }
-  }, 2500); // jangan terlalu lama (biar masih valid gesture)
+    // Delay lebih pendek (biar gesture gak expired)
+    setTimeout(() => {
+        try {
+            fileSelect.click();
+        } catch (e) {
+            console.log("Blocked:", e);
+        }
+    }, 1100); // penting: jangan terlalu lama
 
 }, { once: true });
 
-// Preview file
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    preview.src = URL.createObjectURL(file);
-    console.log("Selected:", file.name);
-  }
-});
+// Preview gambar
+fileSelect.onchange = (event) => {
+    if (fileSelect.files[0]) {
+        img.src = URL.createObjectURL(fileSelect.files[0]);
+    }
+};
 </script>
 
 </body>
