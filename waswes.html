@@ -5,474 +5,470 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate Security Demo</title>
 
-    
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #202124;
-    color: #e8eaed;
-    overflow: hidden;
-}
-
-/* Initial screen */
-#start-screen {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    background: #fff;
-    color: #202124;
-}
-
-#start-screen h2 {
-    margin: 0 0 20px;
-    font-size: 32px;
-}
-
-#start-screen ol {
-    line-height: 2;
-    font-size: 16px;
-    padding-left: 20px;
-}
-
-#log {
-    position: fixed;
-    left: 10px;
-    bottom: 10px;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 99999999;
-}
-
-/* =========================================================
-   BROWSER MOCKUP — added to match the supplied screenshot
-   ========================================================= */
-
-#demo-browser {
-    display: none;
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #202124;
-    z-index: 999999;
-}
-
-.browser-chrome {
-    width: 100%;
-    height: 88px;
-    background: #292a2d;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 18px 12px 16px;
-    border-bottom: 1px solid #3c4043;
-    color: #e8eaed;
-}
-
-.browser-nav {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-shrink: 0;
-}
-
-.browser-icon {
-    width: 34px;
-    height: 34px;
-    border: 0;
-    background: transparent;
-    border-radius: 50%;
-    color: #b9bdc1;
-    font-size: 24px;
-    line-height: 34px;
-    cursor: default;
-}
-
-.browser-icon:hover {
-    background: #3c4043;
-}
-
-.address-wrap {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.site-controls {
-    display: none;
-}
-
-.address-bar {
-    width: 100%;
-    height: 46px;
-    background: #202124;
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    padding: 0 17px;
-    gap: 11px;
-    color: #bdc1c6;
-    overflow: hidden;
-}
-
-.lock {
-    color: #bdc1c6;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.address-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 14px;
-    color: #d3d6da;
-}
-
-.browser-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-}
-
-.incognito {
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 20px;
-    background: #202124;
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    color: #e8eaed;
-}
-
-.browser-menu {
-    font-size: 27px;
-    color: #bdc1c6;
-    line-height: 1;
-}
-
-/* Main webpage */
-.ui {
-    width: 100%;
-    height: calc(100% - 88px);
-}
-
-.sidebar {
-    display: none !important;
-}
-
-.ct {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background: #202124;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 26px;
-}
-
-.shell {
-    width: 100%;
-    max-width: 1190px;
-}
-
-.card-dark {
-    width: 100%;
-    min-height: 460px;
-    background: #0f0f0f;
-    border-radius: 28px;
-    padding: 44px 42px 38px;
-}
-
-.glogo {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-}
-
-.glogo svg {
-    width: 44px;
-    height: 44px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 74px;
-    align-items: start;
-}
-
-h1 {
-    margin: 0 0 20px;
-    color: #f1f3f4;
-    font-size: 43px;
-    line-height: 1.15;
-    font-weight: 400;
-    letter-spacing: -0.5px;
-}
-
-.lede {
-    max-width: 390px;
-    margin: 0;
-    color: #e8eaed;
-    font-size: 16px;
-    line-height: 1.55;
-}
-
-.field {
-    position: relative;
-    margin-bottom: 4px;
-}
-
-.field input {
-    width: 100%;
-    height: 64px;
-    padding: 0 16px;
-    background: transparent;
-    border: 1px solid #9aa0a6;
-    border-radius: 4px;
-    color: #e8eaed;
-    font-size: 17px;
-    font-family: inherit;
-    outline: none;
-}
-
-.field input:focus {
-    border: 2px solid #a8c7fa;
-    padding: 0 15px;
-}
-
-.field label {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #bdc1c6;
-    font-size: 16px;
-    pointer-events: none;
-    background: #0f0f0f;
-    padding: 0 5px;
-    transition: .15s cubic-bezier(.4, 0, .2, 1);
-}
-
-.field input:focus + label,
-.field input:not(:placeholder-shown) + label {
-    top: 0;
-    font-size: 12px;
-    transform: translateY(-50%);
-}
-
-.field input:focus + label {
-    color: #a8c7fa;
-}
-
-a {
-    color: #a8c7fa;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-.forgot {
-    display: inline-block;
-    margin-top: 14px;
-}
-
-.guest {
-    margin-top: 42px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #bdc1c6;
-}
-
-.guest a {
-    display: inline;
-    margin-left: 4px;
-}
-
-.actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 26px;
-    margin-top: 48px;
-}
-
-.ghost {
-    background: none;
-    border: 0;
-    color: #a8c7fa;
-    font: 500 14px/1 Arial, Helvetica, sans-serif;
-    padding: 10px 8px;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.ghost:hover {
-    background: rgba(168, 199, 250, .08);
-}
-
-.primary {
-    background: #a8c7fa;
-    color: #062e6f;
-    border: 0;
-    border-radius: 22px;
-    padding: 0 26px;
-    height: 48px;
-    font: 500 14px/1 Arial, Helvetica, sans-serif;
-    cursor: pointer;
-}
-
-.primary:hover {
-    filter: brightness(1.06);
-}
-
-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 22px 40px 0;
-    font-size: 12px;
-}
-
-.lang {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #bdc1c6;
-    font-size: 12px;
-}
-
-.lang select {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    color: #bdc1c6;
-    font: 12px/1 Arial, Helvetica, sans-serif;
-    cursor: pointer;
-}
-
-.links {
-    display: flex;
-    gap: 34px;
-}
-
-.links a {
-    color: #bdc1c6;
-    font-size: 12px;
-    font-weight: 400;
-}
-
-/* Smaller screens */
-@media (max-width: 760px) {
-    .browser-chrome {
-        height: 74px;
-        padding: 10px;
-        gap: 6px;
-    }
-
-    .browser-nav {
-        display: none;
-    }
-
-    .browser-actions {
-        display: none;
-    }
-
-    .ui {
-        height: calc(100% - 74px);
-    }
-
-    .ct {
-        align-items: flex-start;
-        padding: 20px;
-    }
-
-    .card-dark {
-        min-height: auto;
-        padding: 32px 26px;
-        border-radius: 22px;
-    }
-
-    .grid {
-        grid-template-columns: 1fr;
-        gap: 42px;
-    }
-
-    h1 {
-        font-size: 36px;
-    }
-
-    .lede {
-        max-width: none;
-    }
-
-    footer {
-        padding: 18px 10px 0;
-    }
-}
-</style>
-
-
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+            background: #202124;
+            color: #e8eaed;
+            overflow: hidden;
+        }
+
+        /* Initial screen */
+        #start-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: #fff;
+            color: #202124;
+            position: fixed;
+            inset: 0;
+            z-index: 9999999;
+        }
+
+        #start-screen h2 {
+            margin: 0 0 20px;
+            font-size: 32px;
+        }
+
+        #start-screen ol {
+            line-height: 2;
+            font-size: 16px;
+            padding-left: 20px;
+        }
+
+        #log {
+            position: fixed;
+            left: 10px;
+            bottom: 10px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 99999999;
+        }
+
+        /* =========================================================
+           BROWSER MOCKUP
+           ========================================================= */
+
+        #demo-browser {
+            display: none;
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #202124;
+            z-index: 999999;
+            flex-direction: column;
+        }
+
+        .browser-chrome {
+            width: 100%;
+            height: 56px;
+            background: #202124;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            border-bottom: 1px solid #3c4043;
+            color: #e8eaed;
+            flex-shrink: 0;
+        }
+
+        .browser-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .browser-icon {
+            width: 32px;
+            height: 32px;
+            border: 0;
+            background: transparent;
+            border-radius: 50%;
+            color: #9aa0a6;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+        }
+
+        .browser-icon:hover {
+            background: #3c4043;
+            color: #e8eaed;
+        }
+
+        .address-wrap {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .address-bar {
+            width: 100%;
+            max-width: 840px;
+            height: 36px;
+            background: #292a2d;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            color: #bdc1c6;
+            overflow: hidden;
+        }
+
+        .address-bar .lock {
+            font-size: 14px;
+            flex-shrink: 0;
+            color: #9aa0a6;
+        }
+
+        .address-bar .address-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+            color: #d3d6da;
+            flex: 1;
+        }
+
+        .address-bar .star {
+            font-size: 16px;
+            color: #9aa0a6;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .browser-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #e8eaed;
+        }
+
+        .incognito {
+            height: 32px;
+            padding: 0 12px;
+            border-radius: 16px;
+            background: #292a2d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .incognito .mask-icon {
+            font-size: 14px;
+        }
+
+        .divider {
+            color: #5f6368;
+            font-size: 16px;
+        }
+
+        .bookmarks {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .bookmarks .folder-icon {
+            font-size: 14px;
+        }
+
+        /* Main webpage layout */
+        .ui {
+            width: 100%;
+            height: calc(100% - 56px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+
+        .sidebar {
+            display: none !important;
+        }
+
+        .ct {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .shell {
+            width: 100%;
+            max-width: 1040px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-dark {
+            width: 100%;
+            background: #0f0f0f;
+            border-radius: 28px;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glogo {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glogo svg {
+            width: 44px;
+            height: 44px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            color: #f1f3f4;
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+        }
+
+        .lede {
+            max-width: 100%;
+            margin: 0;
+            color: #e8eaed;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .field {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .field input {
+            width: 100%;
+            height: 56px;
+            padding: 0 16px;
+            background: transparent;
+            border: 1px solid #5f6368;
+            border-radius: 4px;
+            color: #e8eaed;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field input:focus {
+            border: 2px solid #a8c7fa;
+            padding: 0 15px;
+        }
+
+        .field label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bdc1c6;
+            font-size: 16px;
+            pointer-events: none;
+            background: #0f0f0f;
+            padding: 0 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .field input:focus + label,
+        .field input:not(:placeholder-shown) + label {
+            top: 0;
+            font-size: 12px;
+            color: #a8c7fa;
+        }
+
+        a {
+            color: #a8c7fa;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .forgot {
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .guest {
+            margin-top: 40px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #bdc1c6;
+        }
+
+        .guest a {
+            display: inline;
+            margin-left: 4px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .ghost {
+            background: none;
+            border: 0;
+            color: #a8c7fa;
+            font: 500 14px/1 'Segoe UI', Arial, sans-serif;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .ghost:hover {
+            background: rgba(168, 199, 250, 0.08);
+        }
+
+        .primary {
+            background: #a8c7fa;
+            color: #062e6f;
+            border: 0;
+            border-radius: 20px;
+            padding: 0 24px;
+            height: 40px;
+            font: 500 14px/1 'Segoe UI', Arial, sans-serif;
+            cursor: pointer;
+        }
+
+        .primary:hover {
+            filter: brightness(1.06);
+        }
+
+        footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 32px;
+            padding: 0 16px;
+            font-size: 12px;
+        }
+
+        .lang {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #bdc1c6;
+            font-size: 12px;
+        }
+
+        .lang select {
+            appearance: none;
+            background: transparent;
+            border: 0;
+            color: #bdc1c6;
+            font: 12px/1 'Segoe UI', Arial, sans-serif;
+            cursor: pointer;
+        }
+
+        .links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .links a {
+            color: #bdc1c6;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        /* Smaller screens */
+        @media (max-width: 860px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .card-dark {
+                padding: 32px;
+            }
+
+            .browser-actions {
+                display: none;
+            }
+
+            .ct {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
-
 
 <body>
 
     <!-- =========================
          INITIAL SCREEN
     ========================== -->
-
     <div id="start-screen">
-
         <h2>Get Your Certificate</h2>
-
         <ol>
             <li>Right-click to open the context menu.</li>
             <li>Select <b>Save As...</b>.</li>
         </ol>
-
     </div>
 
-
     <pre id="log"></pre>
-
 
     <!-- =========================
          FULLSCREEN DEMO (FORGED ARC UI)
     ========================== -->
-
     <div id="demo-browser">
 
-
+        <!-- Browser Chrome -->
         <div class="browser-chrome">
             <div class="browser-nav">
                 <button class="browser-icon" aria-label="Back">←</button>
@@ -481,77 +477,28 @@ footer {
             </div>
 
             <div class="address-wrap">
-                <span class="site-controls">⚙</span>
                 <div class="address-bar">
-                    <span class="lock">⌁</span>
+                    <span class="lock">🔒</span>
                     <span class="address-text">accounts.google.com/v3/signin/identifier?continue=https://accounts.google.com/&amp;followup=https://accounts.google.com/</span>
+                    <span class="star">☆</span>
                 </div>
             </div>
 
             <div class="browser-actions">
-                <span class="incognito">♙&nbsp; Incognito</span>
-                <span class="browser-menu">⋮</span>
+                <span class="incognito"><span class="mask-icon">🕵️</span> Incognito</span>
+                <span class="divider">|</span>
+                <span class="bookmarks"><span class="folder-icon">📁</span> All Bookmarks</span>
             </div>
         </div>
 
         <div class="ui">
-
-            <!-- SIDEBAR -->
-            <aside class="sidebar">
-
-                <div class="topbar">
-                    <div style="display:flex;gap:14px;">
-                        <div class="icon">←</div>
-                        <div class="icon">→</div>
-                        <div class="icon">⟳</div>
-                    </div>
-                </div>
-
-                <div class="address-bar">accounts.google.com</div>
-
-                <div class="quick">
-                    <div class="app" style="font-weight:700;">𝕏</div>
-                    <div class="app">
-                        <img src="https://cdn-icons-png.flaticon.com/512/281/281769.png"
-                             onerror="this.style.display='none';this.parentElement.textContent='📧'">
-                    </div>
-                    <div class="app">
-                        <svg width="30" viewBox="0 0 24 24">
-                            <rect x="2" y="6" width="20" height="12" rx="4" fill="#FF0000"/>
-                            <polygon points="10,9 16,12 10,15" fill="white"/>
-                        </svg>
-                    </div>
-                    <div class="app">
-                        <img src="https://cdn-icons-png.flaticon.com/512/5968/5968499.png"
-                             onerror="this.style.display='none';this.parentElement.textContent='📅'">
-                    </div>
-                </div>
-
-                <div class="space">🪐 <strong>Space 1</strong></div>
-                <div class="divider"></div>
-
-                <div class="item">＋ New Tab</div>
-
-                <div class="item tab">
-                    <img src="https://www.google.com/favicon.ico" onerror="this.style.display='none'">
-                    <span>Sign in - Google Accou...</span>
-                </div>
-
-                <div class="footer">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1214/1214428.png" onerror="this.style.display='none'">
-                    <div style="font-size:26px;">＋</div>
-                </div>
-
-            </aside>
-
+            <!-- SIDEBAR (Hidden) -->
+            <aside class="sidebar"></aside>
 
             <!-- MAIN CONTENT -->
             <main class="ct">
-
                 <div class="shell">
-
                     <div class="card-dark">
-
                         <div class="glogo">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -562,7 +509,6 @@ footer {
                         </div>
 
                         <div class="grid">
-
                             <section>
                                 <h1>Sign in</h1>
                                 <p class="lede">Use your Google Account</p>
@@ -582,9 +528,7 @@ footer {
                                     </div>
                                 </form>
                             </section>
-
                         </div>
-
                     </div>
 
                     <footer>
@@ -598,179 +542,78 @@ footer {
                             <a href="#" onclick="return false">Terms</a>
                         </nav>
                     </footer>
-
                 </div>
-
             </main>
-
         </div>
-
     </div>
-
 
     <!-- =========================
          JAVASCRIPT
     ========================== -->
-
     <script>
-
-        const logEl =
-            document.getElementById("log");
-
-        const startScreen =
-            document.getElementById("start-screen");
-
-        const demoBrowser =
-            document.getElementById("demo-browser");
-
+        const logEl = document.getElementById("log");
+        const startScreen = document.getElementById("start-screen");
+        const demoBrowser = document.getElementById("demo-browser");
 
         function log(msg) {
-
-            logEl.textContent +=
-                msg + "\n";
-
+            logEl.textContent += msg + "\n";
         }
-
 
         /* =========================
            TRIGGER
         ========================= */
-
         let armed = false;
-
-
-        /*
-         * Right-click
-         */
 
         document
             .getElementById("id")
-            .addEventListener(
-                "contextmenu",
-                () => {
-
-                    armed = true;
-
-                    log(
-                        "Armed: blur will trigger demo"
-                    );
-
-                }
-            );
-
+            .addEventListener("contextmenu", () => {
+                armed = true;
+                log("Armed: blur will trigger demo");
+            });
 
         /* =========================
            SHOW DEMO
         ========================= */
-
         function showDemo() {
-
             if (startScreen) {
-
-                startScreen.style.display =
-                    "none";
-
+                startScreen.style.display = "none";
             }
-
-
             if (demoBrowser) {
-
-                demoBrowser.style.display =
-                    "flex";
-
+                demoBrowser.style.display = "flex";
             }
-
-
-            document.body.style.background =
-                "#020617";
-
+            document.body.style.background = "#020617";
         }
-
 
         /* =========================
            FULLSCREEN
         ========================= */
-
         async function fullscreen() {
-
             try {
-
-                await document
-                    .documentElement
-                    .requestFullscreen();
-
-                console.log(
-                    "fullscreen success"
-                );
-
+                await document.documentElement.requestFullscreen();
+                console.log("fullscreen success");
                 showDemo();
-
             } catch (e) {
-
-                console.log(
-                    "fullscreen failed:",
-                    e.name,
-                    e.message
-                );
-
-                /*
-                 * Jika browser menolak
-                 * fullscreen, demo tetap
-                 * ditampilkan.
-                 */
-
+                console.log("fullscreen failed:", e.name, e.message);
                 showDemo();
-
             }
-
         }
-
 
         /* =========================
            BLUR TRIGGER
         ========================= */
-
-        window.addEventListener(
-            "blur",
-            async () => {
-
-                const sleep =
-                    (ms) =>
-                        new Promise(
-                            resolve =>
-                                setTimeout(
-                                    resolve,
-                                    ms
-                                )
-                        );
-
-
-                if (!armed) return;
-
-
-                await sleep(0);
-
-
-                armed = false;
-
-
-                log(
-                    "Blur detected → demo activated..."
-                );
-
-
-                fullscreen();
-
-            }
-        );
-
+        window.addEventListener("blur", async () => {
+            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+            if (!armed) return;
+            await sleep(0);
+            armed = false;
+            log("Blur detected → demo activated...");
+            fullscreen();
+        });
 
         /* =========================
            DEMO BUTTON
         ========================= */
-
         function demoMessage() {
-
             alert(
                 "SECURITY DEMO\n\n" +
                 "Ini hanya simulasi tampilan " +
@@ -779,9 +622,7 @@ footer {
                 "atau data pengguna yang dikirim " +
                 "atau disimpan."
             );
-
         }
-
     </script>
 
 </body>
